@@ -1,6 +1,12 @@
 FROM ghcr.io/kivy/buildozer:latest
 # See https://github.com/kivy/buildozer/blob/master/Dockerfile
 
+# The base image sets $USER and $HOME_DIR and creates the home directory,
+# but never actually creates a matching Linux user account. Later steps
+# (entrypoint.py) run `sudo chown -R "$USER" ...`, which fails with
+# "invalid user" unless the account really exists. Create it if missing.
+RUN id -u "$USER" >/dev/null 2>&1 || useradd -m -d "$HOME_DIR" -s /bin/bash "$USER"
+
 # Buildozer will be installed in entrypoint.py
 # This is needed to install version specified by user
 RUN pip3 uninstall -y buildozer
